@@ -2,11 +2,17 @@
 #pragma once
 
 #include <QListWidget>
+#include <QSize>
 #include <QStringList>
 #include <QUrl>
 
-/* Icon-mode list of PDF documents with thumbnails, drag and drop and
- * reordering. Each item keeps its absolute path in Qt::UserRole. */
+class QTimer;
+
+/* List of PDF documents with thumbnails, drag and drop and reordering.
+ *
+ * The widget has two presentations of the same model: an icon grid with page
+ * thumbnails, and a compact details list that also shows the document path.
+ * Each item keeps its absolute path in PathRole. */
 class PdfListWidget : public QListWidget
 {
     Q_OBJECT
@@ -17,7 +23,11 @@ public:
         PagesRole,
         SignedRole,
         FailedRole,
+        DisplayPathRole,  /* normalised or full path, see setShowFullPath() */
+        PagesTextRole,    /* formatted page count, painted by the delegate */
     };
+
+    enum DisplayMode { Icons, Details };
 
     explicit PdfListWidget(QWidget *parent = nullptr);
 
@@ -38,6 +48,22 @@ public:
      * Returns true when the order actually changed. */
     bool moveSelectionToRow(int row);
 
+    void setDisplayMode(DisplayMode mode);
+    DisplayMode displayMode() const { return m_displayMode; }
+
+    /* Width of the page thumbnail in icon mode, clamped to a usable range. */
+    void setThumbnailWidth(int width);
+    int thumbnailWidth() const { return m_thumbnailSize.width(); }
+
+    /* Details mode shows the part of the path that differs between the
+     * documents. With full paths enabled the whole path is shown instead. */
+    void setShowFullPath(bool full);
+    bool showFullPath() const { return m_showFullPath; }
+
+    /* Longest directory prefix shared by all paths, with the trailing
+     * separator included. Empty when there is nothing in common. */
+    static QString commonDirectoryPrefix(const QStringList &paths);
+
 signals:
     void filesChanged();
     void sourceDirectoryChanged(const QString &directory);
@@ -52,8 +78,18 @@ protected:
 private:
     void appendItem(const QString &path);
     void refreshItem(QListWidgetItem *item);
+    void applyMode();
+    QString displayPathFor(const QString &path) const;
+    void refreshTooltip(QListWidgetItem *item);
+    void updateDisplayPaths();
+    void refreshThumbnails();
     int dropRowAt(const QPoint &pos) const;
     static QStringList pdfPathsFromUrls(const QList<QUrl> &urls);
 
     QSize m_thumbnailSize;
+    DisplayMode m_displayMode = Icons;
+    bool m_showFullPath = false;
+    QTimer *m_thumbnailTimer = nullptr;
+    QString m_pathPrefix;
+    bool m_pathsAreFlat = false;
 };

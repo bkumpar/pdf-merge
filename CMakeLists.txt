@@ -33,6 +33,8 @@ set(PROJECT_SOURCES
     src/PdfListWidget.h
     src/PdfDocumentInfo.cpp
     src/PdfDocumentInfo.h
+    src/PdfItemDelegate.cpp
+    src/PdfItemDelegate.h
     src/GhostscriptRunner.cpp
     src/GhostscriptRunner.h
     src/SettingsDialog.cpp

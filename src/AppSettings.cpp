@@ -17,6 +17,9 @@ constexpr auto kKeyGsPreset = "ghostscript/preset";
 constexpr auto kKeyGsArguments = "ghostscript/arguments";
 constexpr auto kKeySourceDir = "paths/lastSourceDir";
 constexpr auto kKeyDestinationDir = "paths/lastDestinationDir";
+constexpr auto kKeyThumbnailWidth = "ui/thumbnailWidth";
+constexpr auto kKeyViewMode = "ui/viewMode";
+constexpr auto kKeyShowFullPath = "ui/showFullPath";
 
 } // namespace
 
@@ -220,4 +223,35 @@ void AppSettings::storeDirectory(const QString &key, const QString &directory)
         return;
     }
     m_settings.setValue(key, QDir(directory).absolutePath());
+}
+
+int AppSettings::thumbnailWidth() const
+{
+    return m_settings.value(QString::fromLatin1(kKeyThumbnailWidth), 150).toInt();
+}
+
+void AppSettings::setThumbnailWidth(int width)
+{
+    m_settings.setValue(QString::fromLatin1(kKeyThumbnailWidth), width);
+}
+
+QString AppSettings::viewMode() const
+{
+    return m_settings.value(QString::fromLatin1(kKeyViewMode),
+                            QStringLiteral("icons")).toString();
+}
+
+void AppSettings::setViewMode(const QString &mode)
+{
+    m_settings.setValue(QString::fromLatin1(kKeyViewMode), mode);
+}
+
+bool AppSettings::showFullPath() const
+{
+    return m_settings.value(QString::fromLatin1(kKeyShowFullPath), false).toBool();
+}
+
+void AppSettings::setShowFullPath(bool full)
+{
+    m_settings.setValue(QString::fromLatin1(kKeyShowFullPath), full);
 }

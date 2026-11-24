@@ -1,14 +1,16 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
+#include "PdfListWidget.h"
+
 #include <QMainWindow>
 #include <QStringList>
 
 class GhostscriptRunner;
-class PdfListWidget;
 class QAction;
 class QFrame;
 class QLabel;
+class QSlider;
 class QProgressBar;
 class QPushButton;
 
@@ -37,6 +39,7 @@ private:
     void clearAll();
     void openSettings();
     void showAbout();
+    void applyDisplayMode(PdfListWidget::DisplayMode mode);
     void startMerge();
     void cancelMerge();
 
@@ -61,6 +64,11 @@ private:
     QAction *m_clearAction = nullptr;
     QAction *m_settingsAction = nullptr;
     QAction *m_aboutAction = nullptr;
+    QAction *m_iconViewAction = nullptr;
+    QAction *m_detailsViewAction = nullptr;
+    QAction *m_fullPathAction = nullptr;
+    QLabel *m_sizeLabel = nullptr;
+    QSlider *m_sizeSlider = nullptr;
     QAction *m_mergeAction = nullptr;
 
     QString m_lastOutputPath;

@@ -51,6 +51,15 @@ public:
     QString lastDestinationDir() const;
     void setLastDestinationDir(const QString &directory);
 
+    int thumbnailWidth() const;
+    void setThumbnailWidth(int width);
+
+    QString viewMode() const;
+    void setViewMode(const QString &mode);
+
+    bool showFullPath() const;
+    void setShowFullPath(bool full);
+
     void restoreDefaults();
     void sync();
 

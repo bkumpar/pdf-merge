@@ -21,8 +21,10 @@
 #include <QIcon>
 #include <QLabel>
 #include <QMessageBox>
+#include <QActionGroup>
 #include <QProgressBar>
 #include <QPushButton>
+#include <QSlider>
 #include <QStatusBar>
 #include <QToolBar>
 #include <QUrl>
@@ -67,6 +69,50 @@ void MainWindow::buildUi()
     m_clearAction = toolBar->addAction(
         QIcon::fromTheme(QStringLiteral("edit-clear")), QString());
     connect(m_clearAction, &QAction::triggered, this, &MainWindow::clearAll);
+
+    toolBar->addSeparator();
+
+    m_iconViewAction = toolBar->addAction(
+        QIcon::fromTheme(QStringLiteral("view-list-icons")), QString());
+    m_iconViewAction->setCheckable(true);
+    m_detailsViewAction = toolBar->addAction(
+        QIcon::fromTheme(QStringLiteral("view-list-details")), QString());
+    m_detailsViewAction->setCheckable(true);
+
+    auto *viewGroup = new QActionGroup(this);
+    viewGroup->addAction(m_iconViewAction);
+    viewGroup->addAction(m_detailsViewAction);
+    connect(m_iconViewAction, &QAction::triggered, this, [this] {
+        applyDisplayMode(PdfListWidget::Icons);
+    });
+    connect(m_detailsViewAction, &QAction::triggered, this, [this] {
+        applyDisplayMode(PdfListWidget::Details);
+    });
+
+    m_fullPathAction = toolBar->addAction(QString());
+    m_fullPathAction->setCheckable(true);
+    connect(m_fullPathAction, &QAction::toggled, this, [this](bool checked) {
+        m_list->setShowFullPath(checked);
+        AppSettings::instance().setShowFullPath(checked);
+        AppSettings::instance().sync();
+    });
+
+    m_sizeLabel = new QLabel(this);
+    toolBar->addWidget(m_sizeLabel);
+
+    m_sizeSlider = new QSlider(Qt::Horizontal, this);
+    m_sizeSlider->setRange(80, 280);
+    m_sizeSlider->setSingleStep(10);
+    m_sizeSlider->setPageStep(20);
+    m_sizeSlider->setFixedWidth(140);
+    toolBar->addWidget(m_sizeSlider);
+    connect(m_sizeSlider, &QSlider::valueChanged, this, [this](int value) {
+        m_list->setThumbnailWidth(value);
+    });
+    connect(m_sizeSlider, &QSlider::sliderReleased, this, [this] {
+        AppSettings::instance().setThumbnailWidth(m_sizeSlider->value());
+        AppSettings::instance().sync();
+    });
 
     toolBar->addSeparator();
 
@@ -131,6 +177,17 @@ void MainWindow::buildUi()
                 }
             });
 
+    AppSettings &settings = AppSettings::instance();
+    m_list->setThumbnailWidth(settings.thumbnailWidth());
+    m_sizeSlider->blockSignals(true);
+    m_sizeSlider->setValue(m_list->thumbnailWidth());
+    m_sizeSlider->blockSignals(false);
+    m_fullPathAction->setChecked(settings.showFullPath());
+    m_list->setShowFullPath(settings.showFullPath());
+    applyDisplayMode(settings.viewMode() == QStringLiteral("details")
+                         ? PdfListWidget::Details
+                         : PdfListWidget::Icons);
+
     statusBar()->showMessage(tr("Ready"));
 }
 
@@ -144,6 +201,15 @@ void MainWindow::retranslateUi()
     m_settingsAction->setText(tr("Settings..."));
     m_aboutAction->setText(tr("About"));
     m_aboutAction->setToolTip(tr("About this application"));
+
+    m_iconViewAction->setText(tr("Icons"));
+    m_iconViewAction->setToolTip(tr("Show page thumbnails"));
+    m_detailsViewAction->setText(tr("Details"));
+    m_detailsViewAction->setToolTip(tr("Show a compact list with document paths"));
+    m_fullPathAction->setText(tr("Full path"));
+    m_fullPathAction->setToolTip(tr("Show the whole path instead of the common part"));
+    m_sizeLabel->setText(tr("Icon size"));
+    m_sizeSlider->setToolTip(tr("Thumbnail size in pixels"));
     m_mergeAction->setText(tr("Merge"));
 
     m_bannerLabel->setText(
@@ -210,6 +276,22 @@ void MainWindow::removeSelected()
 void MainWindow::clearAll()
 {
     m_list->clearAll();
+}
+
+void MainWindow::applyDisplayMode(PdfListWidget::DisplayMode mode)
+{
+    m_list->setDisplayMode(mode);
+
+    const bool icons = mode == PdfListWidget::Icons;
+    m_iconViewAction->setChecked(icons);
+    m_detailsViewAction->setChecked(!icons);
+    /* Thumbnail size only means something in the icon grid. */
+    m_sizeLabel->setVisible(icons);
+    m_sizeSlider->setVisible(icons);
+
+    AppSettings::instance().setViewMode(icons ? QStringLiteral("icons")
+                                              : QStringLiteral("details"));
+    AppSettings::instance().sync();
 }
 
 void MainWindow::showAbout()

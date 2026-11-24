@@ -2,6 +2,7 @@
 #include "PdfListWidget.h"
 
 #include "PdfDocumentInfo.h"
+#include "PdfItemDelegate.h"
 
 #include <algorithm>
 
@@ -14,6 +15,7 @@
 #include <QMenu>
 #include <QMimeData>
 #include <QPoint>
+#include <QTimer>
 #include <QUrl>
 
 namespace {
@@ -25,13 +27,9 @@ PdfListWidget::PdfListWidget(QWidget *parent)
     : QListWidget(parent)
     , m_thumbnailSize(kThumbWidth, kThumbHeight)
 {
-    setViewMode(QListView::IconMode);
-    setIconSize(m_thumbnailSize);
-    setGridSize(QSize(kThumbWidth + 24, kThumbHeight + 46));
     setResizeMode(QListView::Adjust);
     setMovement(QListView::Static);
-    setWordWrap(true);
-    setTextElideMode(Qt::ElideMiddle);
+    setItemDelegate(new PdfItemDelegate(this));
     setSelectionMode(QAbstractItemView::ExtendedSelection);
     setDragDropMode(QAbstractItemView::DragDrop);
     setDefaultDropAction(Qt::MoveAction);
@@ -43,10 +41,18 @@ PdfListWidget::PdfListWidget(QWidget *parent)
     viewport()->setAcceptDrops(true);
     setDropIndicatorShown(true);
     setUniformItemSizes(true);
-    setSpacing(6);
     setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
     setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
     setToolTip(tr("Drag PDF files here or use \"Add PDFs...\""));
+
+    /* Re-rendering thumbnails on every slider step is too slow, so the crisp
+     * redraw waits until the user stops moving the slider. */
+    m_thumbnailTimer = new QTimer(this);
+    m_thumbnailTimer->setSingleShot(true);
+    m_thumbnailTimer->setInterval(180);
+    connect(m_thumbnailTimer, &QTimer::timeout, this, &PdfListWidget::refreshThumbnails);
+
+    applyMode();
 }
 
 QStringList PdfListWidget::pdfPathsFromUrls(const QList<QUrl> &urls)
@@ -94,6 +100,7 @@ int PdfListWidget::addFiles(const QStringList &paths, QString *firstDirectory)
         if (firstDirectory) {
             *firstDirectory = firstDir;
         }
+        updateDisplayPaths();
         emit sourceDirectoryChanged(firstDir);
         emit filesChanged();
     }
@@ -131,17 +138,163 @@ void PdfListWidget::refreshItem(QListWidgetItem *item)
         label = tr("%1 (%n page(s))", nullptr, pages).arg(fileName);
     }
     item->setText(label);
-
-    QString tooltip = path;
-    if (signedFile) {
-        tooltip += QLatin1Char('\n')
-                   + tr("This document is digitally signed. Merging removes the signature.");
-    }
-    item->setToolTip(tooltip);
+    item->setData(PagesTextRole,
+                  failed ? QString() : tr("%n page(s)", nullptr, pages));
+    item->setData(DisplayPathRole, displayPathFor(path));
+    refreshTooltip(item);
 
     const qreal ratio = devicePixelRatioF();
     const QString badge = signedFile ? tr("DIGITALLY SIGNED") : QString();
     item->setIcon(QIcon(PdfTools::thumbnail(path, m_thumbnailSize, ratio, badge)));
+}
+
+void PdfListWidget::setDisplayMode(DisplayMode mode)
+{
+    if (m_displayMode == mode) {
+        return;
+    }
+    m_displayMode = mode;
+    applyMode();
+    viewport()->update();
+}
+
+void PdfListWidget::applyMode()
+{
+    if (m_displayMode == Icons) {
+        setViewMode(QListView::IconMode);
+        setIconSize(m_thumbnailSize);
+        setGridSize(QSize(m_thumbnailSize.width() + 24, m_thumbnailSize.height() + 46));
+        setWordWrap(true);
+        setTextElideMode(Qt::ElideMiddle);
+        setSpacing(6);
+    } else {
+        setViewMode(QListView::ListMode);
+        setIconSize(QSize(26, 34));
+        setGridSize(QSize());
+        setWordWrap(false);
+        setTextElideMode(Qt::ElideRight);
+        setSpacing(0);
+    }
+    /* setMovement() and the mode switches touch the viewport drop state. */
+    viewport()->setAcceptDrops(true);
+    doItemsLayout();
+}
+
+void PdfListWidget::setThumbnailWidth(int width)
+{
+    const int clamped = qBound(80, width, 280);
+    const int height = qRound(clamped * static_cast<qreal>(kThumbHeight) / kThumbWidth);
+    const QSize size(clamped, height);
+    if (size == m_thumbnailSize) {
+        return;
+    }
+    m_thumbnailSize = size;
+    if (m_displayMode == Icons) {
+        setIconSize(m_thumbnailSize);
+        setGridSize(QSize(m_thumbnailSize.width() + 24, m_thumbnailSize.height() + 46));
+        doItemsLayout();
+    }
+    m_thumbnailTimer->start();
+}
+
+void PdfListWidget::refreshThumbnails()
+{
+    for (int row = 0; row < count(); ++row) {
+        QListWidgetItem *it = item(row);
+        const QString path = it->data(PathRole).toString();
+        const bool signedFile = it->data(SignedRole).toBool();
+        const QString badge = signedFile ? tr("DIGITALLY SIGNED") : QString();
+        it->setIcon(QIcon(PdfTools::thumbnail(path, m_thumbnailSize,
+                                              devicePixelRatioF(), badge)));
+    }
+    viewport()->update();
+}
+
+void PdfListWidget::setShowFullPath(bool full)
+{
+    if (m_showFullPath == full) {
+        return;
+    }
+    m_showFullPath = full;
+    updateDisplayPaths();
+}
+
+QString PdfListWidget::commonDirectoryPrefix(const QStringList &paths)
+{
+    if (paths.size() < 2) {
+        return QString();
+    }
+    QStringList common = QFileInfo(paths.first()).absolutePath()
+                             .split(QLatin1Char('/'), Qt::SkipEmptyParts);
+    for (const QString &path : paths) {
+        const QStringList parts = QFileInfo(path).absolutePath()
+                                      .split(QLatin1Char('/'), Qt::SkipEmptyParts);
+        int shared = 0;
+        while (shared < common.size() && shared < parts.size()
+               && common.at(shared) == parts.at(shared)) {
+            ++shared;
+        }
+        common = common.mid(0, shared);
+        if (common.isEmpty()) {
+            return QString();
+        }
+    }
+    return QLatin1Char('/') + common.join(QLatin1Char('/')) + QLatin1Char('/');
+}
+
+QString PdfListWidget::displayPathFor(const QString &path) const
+{
+    if (m_showFullPath) {
+        return path;
+    }
+    if (m_pathPrefix.isEmpty()) {
+        /* Nothing in common: the folder is the part that tells them apart. */
+        return QFileInfo(path).absolutePath();
+    }
+    if (m_pathsAreFlat) {
+        /* Every document sits directly in the shared folder, so a path column
+         * would only repeat the file name. */
+        return QString();
+    }
+    return path.startsWith(m_pathPrefix) ? path.mid(m_pathPrefix.size())
+                                         : QFileInfo(path).fileName();
+}
+
+void PdfListWidget::updateDisplayPaths()
+{
+    m_pathPrefix = commonDirectoryPrefix(filePaths());
+
+    bool flat = !m_pathPrefix.isEmpty();
+    for (int row = 0; flat && row < count(); ++row) {
+        const QString path = item(row)->data(PathRole).toString();
+        flat = path.startsWith(m_pathPrefix)
+               && path.mid(m_pathPrefix.size()) == QFileInfo(path).fileName();
+    }
+    m_pathsAreFlat = flat;
+
+    for (int row = 0; row < count(); ++row) {
+        QListWidgetItem *it = item(row);
+        it->setData(DisplayPathRole, displayPathFor(it->data(PathRole).toString()));
+        refreshTooltip(it);
+    }
+    viewport()->update();
+}
+
+void PdfListWidget::refreshTooltip(QListWidgetItem *item)
+{
+    const QString path = item->data(PathRole).toString();
+    const QString shown = displayPathFor(path);
+    QString tooltip = shown;
+    if (shown.isEmpty()) {
+        tooltip = path;
+    } else if (shown != path) {
+        tooltip += QLatin1Char('\n') + path;
+    }
+    if (item->data(SignedRole).toBool()) {
+        tooltip += QLatin1Char('\n')
+                   + tr("This document is digitally signed. Merging removes the signature.");
+    }
+    item->setToolTip(tooltip);
 }
 
 void PdfListWidget::retranslateItems()
@@ -149,6 +302,7 @@ void PdfListWidget::retranslateItems()
     for (int row = 0; row < count(); ++row) {
         refreshItem(item(row));
     }
+    viewport()->update();
     setToolTip(tr("Drag PDF files here or use \"Add PDFs...\""));
 }
 
@@ -161,6 +315,7 @@ void PdfListWidget::removeSelected()
     for (QListWidgetItem *item : selected) {
         delete takeItem(row(item));
     }
+    updateDisplayPaths();
     emit filesChanged();
 }
 
@@ -170,6 +325,7 @@ void PdfListWidget::clearAll()
         return;
     }
     clear();
+    updateDisplayPaths();
     emit filesChanged();
 }
 

@@ -4,7 +4,7 @@
 <context>
     <name>AppSettings</name>
     <message>
-        <location filename="../src/AppSettings.cpp" line="+183"/>
+        <location filename="../src/AppSettings.cpp" line="+186"/>
         <source>Lossless Quality (Recommended)</source>
         <translation>Bez gubitaka (preporučeno)</translation>
     </message>
@@ -28,18 +28,18 @@
 <context>
     <name>MainWindow</name>
     <message>
-        <location filename="../src/MainWindow.cpp" line="+53"/>
+        <location filename="../src/MainWindow.cpp" line="+55"/>
         <source>Main</source>
         <translation>Glavna</translation>
     </message>
     <message>
-        <location line="+81"/>
-        <location line="+23"/>
+        <location line="+136"/>
+        <location line="+32"/>
         <source>Ready</source>
         <translation>Spremno</translation>
     </message>
     <message>
-        <location line="-18"/>
+        <location line="-27"/>
         <source>PDF Merge GS</source>
         <translation>Spajanje PDF-ova (GS)</translation>
     </message>
@@ -74,6 +74,46 @@
         <translation>O ovoj aplikaciji</translation>
     </message>
     <message>
+        <location line="+2"/>
+        <source>Icons</source>
+        <translation>Ikone</translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Show page thumbnails</source>
+        <translation>Prikaži sličice stranica</translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Details</source>
+        <translation>Detalji</translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Show a compact list with document paths</source>
+        <translation>Prikaži zbijeni popis s putanjama dokumenata</translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Full path</source>
+        <translation>Puna putanja</translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Show the whole path instead of the common part</source>
+        <translation>Prikaži cijelu putanju umjesto zajedničkog dijela</translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Icon size</source>
+        <translation>Veličina ikona</translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Thumbnail size in pixels</source>
+        <translation>Veličina sličice u pikselima</translation>
+    </message>
+    <message>
         <location line="+1"/>
         <source>Merge</source>
         <translation>Spoji</translation>
@@ -95,12 +135,12 @@
     </message>
     <message>
         <location line="+2"/>
-        <location line="+125"/>
+        <location line="+141"/>
         <source>Merging...</source>
         <translation>Spajam...</translation>
     </message>
     <message numerus="yes">
-        <location line="-100"/>
+        <location line="-116"/>
         <source>%n file(s) loaded from the command line.</source>
         <translation>
             <numerusform>Iz naredbenog retka učitana je %n datoteka.</numerusform>
@@ -115,12 +155,12 @@
     </message>
     <message>
         <location line="+1"/>
-        <location line="+155"/>
+        <location line="+171"/>
         <source>PDF documents (*.pdf)</source>
         <translation>PDF dokumenti (*.pdf)</translation>
     </message>
     <message numerus="yes">
-        <location line="-145"/>
+        <location line="-161"/>
         <source>%n file(s) added.</source>
         <translation>
             <numerusform>Dodana je %n datoteka.</numerusform>
@@ -129,7 +169,7 @@
         </translation>
     </message>
     <message>
-        <location line="+19"/>
+        <location line="+35"/>
         <source>About PDF Merge GS</source>
         <translation>O aplikaciji PDF Merge GS</translation>
     </message>
@@ -278,13 +318,13 @@ Do you want to continue?</source>
 <context>
     <name>PdfListWidget</name>
     <message>
-        <location filename="../src/PdfListWidget.cpp" line="+49"/>
-        <location line="+103"/>
+        <location filename="../src/PdfListWidget.cpp" line="+46"/>
+        <location line="+260"/>
         <source>Drag PDF files here or use &quot;Add PDFs...&quot;</source>
         <translation>Ovdje povucite PDF datoteke ili upotrijebite &quot;Dodaj PDF-ove...&quot;</translation>
     </message>
     <message>
-        <location line="-23"/>
+        <location line="-170"/>
         <source>%1 (unreadable)</source>
         <translation>%1 (nečitljivo)</translation>
     </message>
@@ -297,18 +337,24 @@ Do you want to continue?</source>
             <numerusform>%1 (%n stranica)</numerusform>
         </translation>
     </message>
+    <message numerus="yes">
+        <location line="+4"/>
+        <source>%n page(s)</source>
+        <translation><numerusform>%n stranica</numerusform><numerusform>%n stranice</numerusform><numerusform>%n stranica</numerusform></translation>
+    </message>
     <message>
-        <location line="+7"/>
+        <location line="+153"/>
         <source>This document is digitally signed. Merging removes the signature.</source>
         <translation>Ovaj dokument ima digitalni potpis. Spajanjem se potpis uklanja.</translation>
     </message>
     <message>
-        <location line="+5"/>
+        <location line="-148"/>
+        <location line="+59"/>
         <source>DIGITALLY SIGNED</source>
         <translation>DIGITALNO POTPISANO</translation>
     </message>
     <message>
-        <location line="+181"/>
+        <location line="+274"/>
         <source>Remove</source>
         <translation>Ukloni</translation>
     </message>
