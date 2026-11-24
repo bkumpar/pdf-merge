@@ -157,6 +157,10 @@ void MainWindow::buildUi()
     connect(m_aboutAction, &QAction::triggered, this, &MainWindow::showAbout);
 
     m_aboutQtAction = new QAction(QString(), this);
+    /* Qt ships the official logo for QMessageBox::aboutQt; using it keeps the
+     * entry recognisable without adding our own copy of the artwork. */
+    m_aboutQtAction->setIcon(
+        QIcon(QStringLiteral(":/qt-project.org/qmessagebox/images/qtlogo-64.png")));
     connect(m_aboutQtAction, &QAction::triggered, this, &MainWindow::showAboutQt);
 
     m_quitAction = new QAction(QString(), this);
