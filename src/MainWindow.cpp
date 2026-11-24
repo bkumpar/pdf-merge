@@ -32,12 +32,46 @@
 #include <QSlider>
 #include <QStatusBar>
 #include <QToolBar>
+#include <QToolButton>
+#include <QPainter>
+#include <QPixmap>
 #include <QUrl>
 #include <QVBoxLayout>
 
 namespace {
 constexpr int kMaxErrorCharacters = 4000;
 } // namespace
+
+/* The switch is icon only, so it needs a glyph even when no icon theme is
+ * installed; the painted fallback keeps it from turning into a blank button. */
+static QIcon menuBarIcon()
+{
+    for (const QString &name : {QStringLiteral("application-menu"), QStringLiteral("show-menu")}) {
+        const QIcon icon = QIcon::fromTheme(name);
+        if (!icon.isNull()) {
+            return icon;
+        }
+    }
+
+    QPixmap pixmap(32, 32);
+    pixmap.setDevicePixelRatio(2.0);
+    pixmap.fill(Qt::transparent);
+    QPainter painter(&pixmap);
+    painter.setRenderHint(QPainter::Antialiasing, true);
+    painter.setPen(QPen(QApplication::palette().color(QPalette::WindowText), 1.6));
+    for (int row = 0; row < 3; ++row) {
+        const int y = 4 + row * 4;
+        painter.drawLine(2, y, 13, y);
+    }
+    return QIcon(pixmap);
+}
+
+/* The switch means "menu bar is visible", so its wording follows that state. */
+static QString menuBarToolTip(bool visible)
+{
+    return visible ? MainWindow::tr("Hide the menu bar")
+                   : MainWindow::tr("Show the menu bar");
+}
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -135,6 +169,7 @@ void MainWindow::buildUi()
     m_toggleMenuBarAction->setShortcut(QKeySequence(Qt::CTRL | Qt::Key_M));
     connect(m_toggleMenuBarAction, &QAction::toggled, this, [this](bool visible) {
         menuBar()->setVisible(visible);
+        m_toggleMenuBarAction->setToolTip(menuBarToolTip(visible));
         AppSettings::instance().setMenuBarVisible(visible);
         AppSettings::instance().sync();
     });
@@ -159,6 +194,17 @@ void MainWindow::buildUi()
     toolBar->addSeparator();
     toolBar->addAction(m_settingsAction);
     toolBar->addAction(m_aboutAction);
+    toolBar->addSeparator();
+    toolBar->addAction(m_toggleMenuBarAction);
+    /* The switch has to stay reachable after the menu bar is gone, so it sits
+     * in the toolbar as an icon only instead of taking text space. */
+    if (auto *menuButton = qobject_cast<QToolButton *>(
+            toolBar->widgetForAction(m_toggleMenuBarAction))) {
+        menuButton->setToolButtonStyle(Qt::ToolButtonIconOnly);
+    }
+    /* Qt moves trailing toolbar items into an overflow menu when the window
+     * gets narrow, which would hide the only way back to the menu bar. */
+    setMinimumWidth(qMax(minimumWidth(), toolBar->sizeHint().width()));
 
     m_fileMenu = menuBar()->addMenu(QString());
     m_fileMenu->addAction(m_addAction);
@@ -174,8 +220,6 @@ void MainWindow::buildUi()
     m_viewMenu->addAction(m_detailsViewAction);
     m_viewMenu->addSeparator();
     m_viewMenu->addAction(m_fullPathAction);
-    m_viewMenu->addSeparator();
-    m_viewMenu->addAction(m_toggleMenuBarAction);
 
     m_settingsMenu = menuBar()->addMenu(QString());
     m_settingsMenu->addAction(m_settingsAction);
@@ -286,6 +330,8 @@ void MainWindow::retranslateUi()
     m_aboutQtAction->setText(tr("About Qt"));
     m_quitAction->setText(tr("Quit"));
     m_toggleMenuBarAction->setText(tr("Show Menu Bar"));
+    m_toggleMenuBarAction->setIcon(menuBarIcon());
+    m_toggleMenuBarAction->setToolTip(menuBarToolTip(m_toggleMenuBarAction->isChecked()));
 
     m_fileMenu->setTitle(tr("&File"));
     m_viewMenu->setTitle(tr("&View"));

@@ -180,7 +180,11 @@ void PdfListWidget::applyMode()
         setTextElideMode(Qt::ElideRight);
         setSpacing(0);
     }
-    /* setMovement() and the mode switches touch the viewport drop state. */
+    /* Qt recomputes dragEnabled and acceptDrops from movement() at the end of
+     * setViewMode(); with Static movement both end up false and startDrag()
+     * never runs, so the internal reorder would be dead in both modes. */
+    setDragEnabled(true);
+    setAcceptDrops(true);
     viewport()->setAcceptDrops(true);
     doItemsLayout();
     /* Each mode renders its thumbnails at a different size. */

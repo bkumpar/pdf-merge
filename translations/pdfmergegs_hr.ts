@@ -84,6 +84,16 @@
         <translation>Prikaži traku izbornika</translation>
     </message>
     <message>
+        <location line="+1"/>
+        <source>Hide the menu bar</source>
+        <translation>Sakrij traku izbornika</translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Show the menu bar</source>
+        <translation>Prikaži traku izbornika</translation>
+    </message>
+    <message>
         <location line="+2"/>
         <source>&amp;File</source>
         <translation>&amp;Datoteka</translation>
