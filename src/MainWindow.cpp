@@ -74,6 +74,10 @@ void MainWindow::buildUi()
         QIcon::fromTheme(QStringLiteral("configure")), QString());
     connect(m_settingsAction, &QAction::triggered, this, &MainWindow::openSettings);
 
+    m_aboutAction = toolBar->addAction(
+        QIcon::fromTheme(QStringLiteral("help-about")), QString());
+    connect(m_aboutAction, &QAction::triggered, this, &MainWindow::showAbout);
+
     auto *spacer = new QWidget(this);
     spacer->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
     toolBar->addWidget(spacer);
@@ -138,6 +142,8 @@ void MainWindow::retranslateUi()
     m_removeAction->setText(tr("Remove Selected"));
     m_clearAction->setText(tr("Clear All"));
     m_settingsAction->setText(tr("Settings..."));
+    m_aboutAction->setText(tr("About"));
+    m_aboutAction->setToolTip(tr("About this application"));
     m_mergeAction->setText(tr("Merge"));
 
     m_bannerLabel->setText(
@@ -204,6 +210,34 @@ void MainWindow::removeSelected()
 void MainWindow::clearAll()
 {
     m_list->clearAll();
+}
+
+void MainWindow::showAbout()
+{
+    // Standard Qt about box: application identity first, the framework
+    // details behind the About Qt button.
+    QMessageBox box(this);
+    box.setWindowTitle(tr("About PDF Merge GS"));
+    box.setIconPixmap(QIcon(QStringLiteral(":/icons/pdfmergegs.svg")).pixmap(64, 64));
+    box.setTextFormat(Qt::RichText);
+    box.setText(tr(
+        "<h3>PDF Merge GS %1</h3>"
+        "<p>Merges PDF documents into a single file with the external "
+        "Ghostscript tool.</p>"
+        "<p>Built with Qt %2 and the Qt PDF module.</p>"
+        "<p>Licensed under the GNU General Public License v3.0 or later.</p>"
+        "<p>Ghostscript is a separate program and is not part of this "
+        "application.</p>")
+        .arg(QApplication::applicationVersion(),
+             QString::fromLatin1(qVersion())));
+
+    QPushButton *aboutQtButton = box.addButton(tr("About Qt..."),
+                                               QMessageBox::ActionRole);
+    box.addButton(QMessageBox::Close);
+    box.exec();
+
+    if (box.clickedButton() == aboutQtButton)
+        QMessageBox::aboutQt(this, tr("About Qt"));
 }
 
 void MainWindow::openSettings()

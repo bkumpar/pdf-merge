@@ -4,7 +4,7 @@
 <context>
     <name>AppSettings</name>
     <message>
-        <location filename="../src/AppSettings.cpp" line="+185"/>
+        <location filename="../src/AppSettings.cpp" line="+183"/>
         <source>Lossless Quality (Recommended)</source>
         <translation>Bez gubitaka (preporučeno)</translation>
     </message>
@@ -33,13 +33,13 @@
         <translation>Glavna</translation>
     </message>
     <message>
-        <location line="+79"/>
-        <location line="+21"/>
+        <location line="+81"/>
+        <location line="+23"/>
         <source>Ready</source>
         <translation>Spremno</translation>
     </message>
     <message>
-        <location line="-16"/>
+        <location line="-18"/>
         <source>PDF Merge GS</source>
         <translation>Spajanje PDF-ova (GS)</translation>
     </message>
@@ -65,13 +65,23 @@
     </message>
     <message>
         <location line="+1"/>
+        <source>About</source>
+        <translation>O aplikaciji</translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>About this application</source>
+        <translation>O ovoj aplikaciji</translation>
+    </message>
+    <message>
+        <location line="+1"/>
         <source>Merge</source>
         <translation>Spoji</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>Ghostscript (gs) was not found on this system. Install the &quot;ghostscript&quot; package or point to the binary in the settings. You can still add and arrange documents.</source>
-        <translation>Ghostscript (gs) nije pronađen na sustavu. Instalirajte paket "ghostscript" ili u postavkama navedite putanju do binarne datoteke. Dokumente i dalje možete dodavati i slagati.</translation>
+        <translation>Ghostscript (gs) nije pronađen na sustavu. Instalirajte paket &quot;ghostscript&quot; ili u postavkama navedite putanju do binarne datoteke. Dokumente i dalje možete dodavati i slagati.</translation>
     </message>
     <message>
         <location line="+3"/>
@@ -85,14 +95,18 @@
     </message>
     <message>
         <location line="+2"/>
-        <location line="+101"/>
+        <location line="+125"/>
         <source>Merging...</source>
         <translation>Spajam...</translation>
     </message>
     <message numerus="yes">
-        <location line="-76"/>
+        <location line="-100"/>
         <source>%n file(s) loaded from the command line.</source>
-        <translation><numerusform>Iz naredbenog retka učitana je %n datoteka.</numerusform><numerusform>Iz naredbenog retka učitane su %n datoteke.</numerusform><numerusform>Iz naredbenog retka učitano je %n datoteka.</numerusform></translation>
+        <translation>
+            <numerusform>Iz naredbenog retka učitana je %n datoteka.</numerusform>
+            <numerusform>Iz naredbenog retka učitane su %n datoteke.</numerusform>
+            <numerusform>Iz naredbenog retka učitano je %n datoteka.</numerusform>
+        </translation>
     </message>
     <message>
         <location line="+8"/>
@@ -101,17 +115,41 @@
     </message>
     <message>
         <location line="+1"/>
-        <location line="+131"/>
+        <location line="+155"/>
         <source>PDF documents (*.pdf)</source>
         <translation>PDF dokumenti (*.pdf)</translation>
     </message>
     <message numerus="yes">
-        <location line="-121"/>
+        <location line="-145"/>
         <source>%n file(s) added.</source>
-        <translation><numerusform>Dodana je %n datoteka.</numerusform><numerusform>Dodane su %n datoteke.</numerusform><numerusform>Dodano je %n datoteka.</numerusform></translation>
+        <translation>
+            <numerusform>Dodana je %n datoteka.</numerusform>
+            <numerusform>Dodane su %n datoteke.</numerusform>
+            <numerusform>Dodano je %n datoteka.</numerusform>
+        </translation>
     </message>
     <message>
-        <location line="+76"/>
+        <location line="+19"/>
+        <source>About PDF Merge GS</source>
+        <translation>O aplikaciji PDF Merge GS</translation>
+    </message>
+    <message>
+        <location line="+3"/>
+        <source>&lt;h3&gt;PDF Merge GS %1&lt;/h3&gt;&lt;p&gt;Merges PDF documents into a single file with the external Ghostscript tool.&lt;/p&gt;&lt;p&gt;Built with Qt %2 and the Qt PDF module.&lt;/p&gt;&lt;p&gt;Licensed under the GNU General Public License v3.0 or later.&lt;/p&gt;&lt;p&gt;Ghostscript is a separate program and is not part of this application.&lt;/p&gt;</source>
+        <translation>&lt;h3&gt;PDF Merge GS %1&lt;/h3&gt;&lt;p&gt;Spaja PDF dokumente u jednu datoteku pomoću vanjskog alata Ghostscript.&lt;/p&gt;&lt;p&gt;Izgrađeno s Qt-om %2 i modulom Qt PDF.&lt;/p&gt;&lt;p&gt;Licencirano pod GNU General Public License v3.0 ili novijom.&lt;/p&gt;&lt;p&gt;Ghostscript je zaseban program i nije dio ove aplikacije.&lt;/p&gt;</translation>
+    </message>
+    <message>
+        <location line="+11"/>
+        <source>About Qt...</source>
+        <translation>O Qt-u...</translation>
+    </message>
+    <message>
+        <location line="+6"/>
+        <source>About Qt</source>
+        <translation>O Qt-u</translation>
+    </message>
+    <message>
+        <location line="+61"/>
         <source>Digitally signed documents</source>
         <translation>Digitalno potpisani dokumenti</translation>
     </message>
@@ -152,7 +190,7 @@ Do you want to continue?</source>
     <message>
         <location line="+1"/>
         <source>Ghostscript (gs) is required for merging. Install the &quot;ghostscript&quot; package or set the binary path in the settings.</source>
-        <translation>Ghostscript (gs) je obavezan za spajanje. Instalirajte paket "ghostscript" ili u postavkama postavite putanju do binarne datoteke.</translation>
+        <translation>Ghostscript (gs) je obavezan za spajanje. Instalirajte paket &quot;ghostscript&quot; ili u postavkama postavite putanju do binarne datoteke.</translation>
     </message>
     <message>
         <location line="+12"/>
@@ -240,10 +278,10 @@ Do you want to continue?</source>
 <context>
     <name>PdfListWidget</name>
     <message>
-        <location filename="../src/PdfListWidget.cpp" line="+42"/>
+        <location filename="../src/PdfListWidget.cpp" line="+49"/>
         <location line="+103"/>
         <source>Drag PDF files here or use &quot;Add PDFs...&quot;</source>
-        <translation>Ovdje povucite PDF datoteke ili upotrijebite "Dodaj PDF-ove..."</translation>
+        <translation>Ovdje povucite PDF datoteke ili upotrijebite &quot;Dodaj PDF-ove...&quot;</translation>
     </message>
     <message>
         <location line="-23"/>
@@ -253,7 +291,11 @@ Do you want to continue?</source>
     <message numerus="yes">
         <location line="+2"/>
         <source>%1 (%n page(s))</source>
-        <translation><numerusform>%1 (%n stranica)</numerusform><numerusform>%1 (%n stranice)</numerusform><numerusform>%1 (%n stranica)</numerusform></translation>
+        <translation>
+            <numerusform>%1 (%n stranica)</numerusform>
+            <numerusform>%1 (%n stranice)</numerusform>
+            <numerusform>%1 (%n stranica)</numerusform>
+        </translation>
     </message>
     <message>
         <location line="+7"/>
@@ -266,7 +308,7 @@ Do you want to continue?</source>
         <translation>DIGITALNO POTPISANO</translation>
     </message>
     <message>
-        <location line="+108"/>
+        <location line="+181"/>
         <source>Remove</source>
         <translation>Ukloni</translation>
     </message>
@@ -274,6 +316,34 @@ Do you want to continue?</source>
         <location line="+2"/>
         <source>Clear All</source>
         <translation>Očisti sve</translation>
+    </message>
+</context>
+<context>
+    <name>PdfTools</name>
+    <message>
+        <location filename="../src/PdfDocumentInfo.cpp" line="+28"/>
+        <source>File not found.</source>
+        <translation>Datoteka nije pronađena.</translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>The file is not a valid PDF document.</source>
+        <translation>Datoteka nije valjani PDF dokument.</translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>The document is password protected.</source>
+        <translation>Dokument je zaštićen lozinkom.</translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>The document uses an unsupported security scheme.</source>
+        <translation>Dokument koristi nepodržanu sigurnosnu shemu.</translation>
+    </message>
+    <message>
+        <location line="+5"/>
+        <source>The document could not be read.</source>
+        <translation>Dokument nije moguće pročitati.</translation>
     </message>
 </context>
 <context>
@@ -361,7 +431,7 @@ Do you want to continue?</source>
     <message>
         <location line="+35"/>
         <source>Ghostscript was not found. Install the &quot;ghostscript&quot; package or choose the binary manually.</source>
-        <translation>Ghostscript nije pronađen. Instalirajte paket "ghostscript" ili ručno odaberite binarnu datoteku.</translation>
+        <translation>Ghostscript nije pronađen. Instalirajte paket &quot;ghostscript&quot; ili ručno odaberite binarnu datoteku.</translation>
     </message>
     <message>
         <location line="+4"/>

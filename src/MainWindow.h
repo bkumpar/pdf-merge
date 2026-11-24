@@ -36,6 +36,7 @@ private:
     void removeSelected();
     void clearAll();
     void openSettings();
+    void showAbout();
     void startMerge();
     void cancelMerge();
 
@@ -59,6 +60,7 @@ private:
     QAction *m_removeAction = nullptr;
     QAction *m_clearAction = nullptr;
     QAction *m_settingsAction = nullptr;
+    QAction *m_aboutAction = nullptr;
     QAction *m_mergeAction = nullptr;
 
     QString m_lastOutputPath;
