@@ -21,11 +21,16 @@
 namespace {
 constexpr int kThumbWidth = 150;
 constexpr int kThumbHeight = 196;
+constexpr int kDetailsIconWidth = 32;
+constexpr int kDetailsIconHeight = 42;
+constexpr int kDetailsIconMin = 16;
+constexpr int kDetailsIconMax = 72;
 } // namespace
 
 PdfListWidget::PdfListWidget(QWidget *parent)
     : QListWidget(parent)
     , m_thumbnailSize(kThumbWidth, kThumbHeight)
+    , m_detailsIconSize(kDetailsIconWidth, kDetailsIconHeight)
 {
     setResizeMode(QListView::Adjust);
     setMovement(QListView::Static);
@@ -145,7 +150,7 @@ void PdfListWidget::refreshItem(QListWidgetItem *item)
 
     const qreal ratio = devicePixelRatioF();
     const QString badge = signedFile ? tr("DIGITALLY SIGNED") : QString();
-    item->setIcon(QIcon(PdfTools::thumbnail(path, m_thumbnailSize, ratio, badge)));
+    item->setIcon(QIcon(PdfTools::thumbnail(path, iconSizeForMode(), ratio, badge)));
 }
 
 void PdfListWidget::setDisplayMode(DisplayMode mode)
@@ -169,7 +174,7 @@ void PdfListWidget::applyMode()
         setSpacing(6);
     } else {
         setViewMode(QListView::ListMode);
-        setIconSize(QSize(26, 34));
+        setIconSize(m_detailsIconSize);
         setGridSize(QSize());
         setWordWrap(false);
         setTextElideMode(Qt::ElideRight);
@@ -178,6 +183,30 @@ void PdfListWidget::applyMode()
     /* setMovement() and the mode switches touch the viewport drop state. */
     viewport()->setAcceptDrops(true);
     doItemsLayout();
+    /* Each mode renders its thumbnails at a different size. */
+    m_thumbnailTimer->start();
+}
+
+QSize PdfListWidget::iconSizeForMode() const
+{
+    return m_displayMode == Icons ? m_thumbnailSize : m_detailsIconSize;
+}
+
+void PdfListWidget::setDetailsIconWidth(int width)
+{
+    const int clamped = qBound(kDetailsIconMin, width, kDetailsIconMax);
+    const QSize size(clamped,
+                     qRound(clamped * static_cast<qreal>(kDetailsIconHeight)
+                            / kDetailsIconWidth));
+    if (size == m_detailsIconSize) {
+        return;
+    }
+    m_detailsIconSize = size;
+    if (m_displayMode == Details) {
+        setIconSize(m_detailsIconSize);
+        doItemsLayout();
+    }
+    m_thumbnailTimer->start();
 }
 
 void PdfListWidget::setThumbnailWidth(int width)

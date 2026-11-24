@@ -42,6 +42,8 @@ private:
     void showAbout();
     void showAboutQt();
     void updateDocumentSummary();
+    void onSizeSliderMoved(int value);
+    void syncSizeSlider();
     void applyDisplayMode(PdfListWidget::DisplayMode mode);
     void startMerge();
     void cancelMerge();

@@ -234,12 +234,16 @@ void MainWindow::buildUi()
     m_sizeSlider->setPageStep(20);
     m_sizeSlider->setFixedWidth(160);
     summaryLayout->addWidget(m_sizeSlider);
-    connect(m_sizeSlider, &QSlider::valueChanged, this, [this](int value) {
-        m_list->setThumbnailWidth(value);
-    });
+    connect(m_sizeSlider, &QSlider::valueChanged, this,
+            &MainWindow::onSizeSliderMoved);
     connect(m_sizeSlider, &QSlider::sliderReleased, this, [this] {
-        AppSettings::instance().setThumbnailWidth(m_sizeSlider->value());
-        AppSettings::instance().sync();
+        AppSettings &settings = AppSettings::instance();
+        if (m_list->displayMode() == PdfListWidget::Icons) {
+            settings.setThumbnailWidth(m_sizeSlider->value());
+        } else {
+            settings.setDetailsIconWidth(m_sizeSlider->value());
+        }
+        settings.sync();
     });
 
     layout->addWidget(summaryBar);
@@ -259,9 +263,7 @@ void MainWindow::buildUi()
 
     AppSettings &settings = AppSettings::instance();
     m_list->setThumbnailWidth(settings.thumbnailWidth());
-    m_sizeSlider->blockSignals(true);
-    m_sizeSlider->setValue(m_list->thumbnailWidth());
-    m_sizeSlider->blockSignals(false);
+    m_list->setDetailsIconWidth(settings.detailsIconWidth());
     m_fullPathAction->setChecked(settings.showFullPath());
     m_list->setShowFullPath(settings.showFullPath());
     applyDisplayMode(settings.viewMode() == QStringLiteral("details")
@@ -368,6 +370,29 @@ void MainWindow::clearAll()
     m_list->clearAll();
 }
 
+void MainWindow::onSizeSliderMoved(int value)
+{
+    if (m_list->displayMode() == PdfListWidget::Icons) {
+        m_list->setThumbnailWidth(value);
+    } else {
+        m_list->setDetailsIconWidth(value);
+    }
+}
+
+void MainWindow::syncSizeSlider()
+{
+    const bool icons = m_list->displayMode() == PdfListWidget::Icons;
+    const int minimum = icons ? 80 : 16;
+    const int maximum = icons ? 280 : 72;
+    const int current = icons ? m_list->thumbnailWidth() : m_list->detailsIconWidth();
+
+    m_sizeSlider->blockSignals(true);
+    m_sizeSlider->setRange(minimum, maximum);
+    m_sizeSlider->setSingleStep(icons ? 10 : 4);
+    m_sizeSlider->setValue(current);
+    m_sizeSlider->blockSignals(false);
+}
+
 void MainWindow::applyDisplayMode(PdfListWidget::DisplayMode mode)
 {
     m_list->setDisplayMode(mode);
@@ -375,9 +400,8 @@ void MainWindow::applyDisplayMode(PdfListWidget::DisplayMode mode)
     const bool icons = mode == PdfListWidget::Icons;
     m_iconViewAction->setChecked(icons);
     m_detailsViewAction->setChecked(!icons);
-    /* Thumbnail size only means something in the icon grid. */
-    m_sizeLabel->setVisible(icons);
-    m_sizeSlider->setVisible(icons);
+    /* The slider drives both modes, each with its own range and value. */
+    syncSizeSlider();
 
     AppSettings::instance().setViewMode(icons ? QStringLiteral("icons")
                                               : QStringLiteral("details"));

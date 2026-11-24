@@ -10,9 +10,8 @@
 #include <QStyle>
 
 namespace {
-constexpr int kRowHeight = 46;
-constexpr int kIconWidth = 26;
-constexpr int kIconHeight = 34;
+constexpr int kRowPadding = 8;
+constexpr int kMinRowHeight = 36;
 constexpr int kMargin = 8;
 constexpr int kGap = 10;
 constexpr int kPagesWidth = 92;
@@ -22,6 +21,17 @@ bool isIconMode(const QStyleOptionViewItem &option)
 {
     const auto *view = qobject_cast<const QListView *>(option.widget);
     return view && view->viewMode() == QListView::IconMode;
+}
+
+/* The details row follows the icon size the view is configured with, so the
+ * thumbnail slider works in both display modes. */
+QSize detailsIconSize(const QStyleOptionViewItem &option)
+{
+    const auto *view = qobject_cast<const QListView *>(option.widget);
+    if (view && view->iconSize().isValid()) {
+        return view->iconSize();
+    }
+    return QSize(32, 42);
 }
 } // namespace
 
@@ -36,7 +46,8 @@ QSize PdfItemDelegate::sizeHint(const QStyleOptionViewItem &option,
     if (isIconMode(option)) {
         return QStyledItemDelegate::sizeHint(option, index);
     }
-    return QSize(320, kRowHeight);
+    const int height = qMax(kMinRowHeight, detailsIconSize(option).height() + kRowPadding);
+    return QSize(320, height);
 }
 
 void PdfItemDelegate::paint(QPainter *painter,
@@ -72,10 +83,11 @@ void PdfItemDelegate::paint(QPainter *painter,
                                 : palette.color(QPalette::Disabled, QPalette::Text);
     pathColor.setAlpha(selected ? 200 : 255);
 
+    const QSize iconSize = detailsIconSize(option);
     const int left = opt.rect.left() + kMargin;
     const QRect iconRect(left,
-                         opt.rect.top() + (opt.rect.height() - kIconHeight) / 2,
-                         kIconWidth, kIconHeight);
+                         opt.rect.top() + (opt.rect.height() - iconSize.height()) / 2,
+                         iconSize.width(), iconSize.height());
 
     const QIcon icon = index.data(Qt::DecorationRole).value<QIcon>();
     if (!icon.isNull()) {

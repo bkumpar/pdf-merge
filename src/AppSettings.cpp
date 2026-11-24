@@ -18,6 +18,7 @@ constexpr auto kKeyGsArguments = "ghostscript/arguments";
 constexpr auto kKeySourceDir = "paths/lastSourceDir";
 constexpr auto kKeyDestinationDir = "paths/lastDestinationDir";
 constexpr auto kKeyThumbnailWidth = "ui/thumbnailWidth";
+constexpr auto kKeyDetailsIconWidth = "ui/detailsIconWidth";
 constexpr auto kKeyViewMode = "ui/viewMode";
 constexpr auto kKeyShowFullPath = "ui/showFullPath";
 constexpr auto kKeyMenuBarVisible = "ui/menuBarVisible";
@@ -265,4 +266,15 @@ bool AppSettings::menuBarVisible() const
 void AppSettings::setMenuBarVisible(bool visible)
 {
     m_settings.setValue(QString::fromLatin1(kKeyMenuBarVisible), visible);
+}
+
+int AppSettings::detailsIconWidth() const
+{
+    const int stored = m_settings.value(QString::fromLatin1(kKeyDetailsIconWidth), 32).toInt();
+    return qBound(16, stored, 72);
+}
+
+void AppSettings::setDetailsIconWidth(int width)
+{
+    m_settings.setValue(QString::fromLatin1(kKeyDetailsIconWidth), qBound(16, width, 72));
 }

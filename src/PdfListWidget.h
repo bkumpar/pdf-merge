@@ -55,6 +55,10 @@ public:
     void setThumbnailWidth(int width);
     int thumbnailWidth() const { return m_thumbnailSize.width(); }
 
+    /* Width of the thumbnail in details mode; the row height follows it. */
+    void setDetailsIconWidth(int width);
+    int detailsIconWidth() const { return m_detailsIconSize.width(); }
+
     /* Details mode shows the part of the path that differs between the
      * documents. With full paths enabled the whole path is shown instead. */
     void setShowFullPath(bool full);
@@ -79,6 +83,7 @@ private:
     void appendItem(const QString &path);
     void refreshItem(QListWidgetItem *item);
     void applyMode();
+    QSize iconSizeForMode() const;
     QString displayPathFor(const QString &path) const;
     void refreshTooltip(QListWidgetItem *item);
     void updateDisplayPaths();
@@ -87,6 +92,7 @@ private:
     static QStringList pdfPathsFromUrls(const QList<QUrl> &urls);
 
     QSize m_thumbnailSize;
+    QSize m_detailsIconSize;
     DisplayMode m_displayMode = Icons;
     bool m_showFullPath = false;
     QTimer *m_thumbnailTimer = nullptr;

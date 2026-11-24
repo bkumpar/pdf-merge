@@ -54,6 +54,9 @@ public:
     int thumbnailWidth() const;
     void setThumbnailWidth(int width);
 
+    int detailsIconWidth() const;
+    void setDetailsIconWidth(int width);
+
     QString viewMode() const;
     void setViewMode(const QString &mode);
 
