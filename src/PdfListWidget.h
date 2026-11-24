@@ -34,6 +34,10 @@ public:
     /* Rebuilds item labels and thumbnails after a language change. */
     void retranslateItems();
 
+    /* Moves the selected items so that they are inserted before the given row.
+     * Returns true when the order actually changed. */
+    bool moveSelectionToRow(int row);
+
 signals:
     void filesChanged();
     void sourceDirectoryChanged(const QString &directory);
@@ -48,6 +52,7 @@ protected:
 private:
     void appendItem(const QString &path);
     void refreshItem(QListWidgetItem *item);
+    int dropRowAt(const QPoint &pos) const;
     static QStringList pdfPathsFromUrls(const QList<QUrl> &urls);
 
     QSize m_thumbnailSize;

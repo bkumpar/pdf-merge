@@ -3,6 +3,8 @@
 
 #include "PdfDocumentInfo.h"
 
+#include <algorithm>
+
 #include <QContextMenuEvent>
 #include <QDir>
 #include <QDragEnterEvent>
@@ -11,6 +13,7 @@
 #include <QKeyEvent>
 #include <QMenu>
 #include <QMimeData>
+#include <QPoint>
 #include <QUrl>
 
 namespace {
@@ -34,6 +37,10 @@ PdfListWidget::PdfListWidget(QWidget *parent)
     setDefaultDropAction(Qt::MoveAction);
     setDragEnabled(true);
     setAcceptDrops(true);
+    /* QListView::setMovement(Static) switches acceptDrops off on the viewport,
+     * and only the viewport receives drop events. Without this line an internal
+     * drag never reaches dropEvent, so the list cannot be reordered. */
+    viewport()->setAcceptDrops(true);
     setDropIndicatorShown(true);
     setUniformItemSizes(true);
     setSpacing(6);
@@ -190,6 +197,12 @@ QStringList PdfListWidget::signedFilePaths() const
 
 void PdfListWidget::dragEnterEvent(QDragEnterEvent *event)
 {
+    // A drag that started in this list reorders it, it never adds files.
+    if (event->source() == this) {
+        event->setDropAction(Qt::MoveAction);
+        event->accept();
+        return;
+    }
     if (event->mimeData()->hasUrls() && !pdfPathsFromUrls(event->mimeData()->urls()).isEmpty()) {
         event->acceptProposedAction();
         return;
@@ -199,6 +212,11 @@ void PdfListWidget::dragEnterEvent(QDragEnterEvent *event)
 
 void PdfListWidget::dragMoveEvent(QDragMoveEvent *event)
 {
+    if (event->source() == this) {
+        event->setDropAction(Qt::MoveAction);
+        event->accept();
+        return;
+    }
     if (event->mimeData()->hasUrls()) {
         event->acceptProposedAction();
         return;
@@ -208,6 +226,19 @@ void PdfListWidget::dragMoveEvent(QDragMoveEvent *event)
 
 void PdfListWidget::dropEvent(QDropEvent *event)
 {
+    if (event->source() == this) {
+        const bool moved = moveSelectionToRow(dropRowAt(event->position().toPoint()));
+        /* The items were already moved in the model, so the drop is reported
+         * as a copy: a MoveAction would make QAbstractItemView delete the
+         * source rows afterwards and the documents would disappear. */
+        if (moved)
+            event->setDropAction(Qt::CopyAction);
+        else
+            event->setDropAction(Qt::IgnoreAction);
+        event->accept();
+        return;
+    }
+
     if (event->mimeData()->hasUrls()) {
         const QStringList paths = pdfPathsFromUrls(event->mimeData()->urls());
         if (paths.isEmpty()) {
@@ -220,6 +251,55 @@ void PdfListWidget::dropEvent(QDropEvent *event)
     }
     QListWidget::dropEvent(event);
     emit filesChanged();
+}
+
+int PdfListWidget::dropRowAt(const QPoint &pos) const
+{
+    const QModelIndex index = indexAt(pos);
+    if (!index.isValid())
+        return count();  // dropped below or beside the last item
+    const QRect rect = visualRect(index);
+    const bool after = viewMode() == QListView::IconMode
+                           ? pos.x() > rect.center().x()
+                           : pos.y() > rect.center().y();
+    return after ? index.row() + 1 : index.row();
+}
+
+bool PdfListWidget::moveSelectionToRow(int row)
+{
+    QList<QListWidgetItem *> selected = selectedItems();
+    if (selected.isEmpty())
+        return false;
+
+    QList<int> rows;
+    rows.reserve(selected.size());
+    for (QListWidgetItem *item : selected)
+        rows.append(this->row(item));
+    std::sort(rows.begin(), rows.end());
+
+    const int target = qBound(0, row, count());
+    // Dropping inside the moved block leaves the order unchanged.
+    if (target >= rows.first() && target <= rows.last() + 1)
+        return false;
+
+    // Take from the bottom up so the remaining rows stay valid.
+    QList<QListWidgetItem *> moved;
+    moved.reserve(rows.size());
+    for (int i = rows.size() - 1; i >= 0; --i)
+        moved.prepend(takeItem(rows.at(i)));
+
+    int insertAt = target > rows.last() ? target - moved.size() : target;
+    for (QListWidgetItem *item : moved)
+        insertItem(insertAt++, item);
+
+    clearSelection();
+    for (QListWidgetItem *item : moved)
+        item->setSelected(true);
+    scrollToItem(moved.first(), QAbstractItemView::EnsureVisible);
+    setCurrentItem(moved.first());
+
+    emit filesChanged();
+    return true;
 }
 
 void PdfListWidget::keyPressEvent(QKeyEvent *event)
