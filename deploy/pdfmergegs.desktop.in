@@ -1,0 +1,18 @@
+[Desktop Entry]
+Type=Application
+Version=1.0
+Name=PDF Merge GS
+Name[hr]=Spajanje PDF-ova (GS)
+GenericName=PDF Merge Tool
+GenericName[hr]=Alat za spajanje PDF-ova
+Comment=Merge several PDF documents into one using Ghostscript
+Comment[hr]=Spoji više PDF dokumenata u jedan pomoću Ghostscripta
+Exec=@CMAKE_INSTALL_FULL_BINDIR@/pdfmergegs %F
+TryExec=pdfmergegs
+Icon=pdfmergegs
+Terminal=false
+Categories=Office;Utility;
+MimeType=application/pdf;
+Keywords=pdf;merge;join;combine;ghostscript;gs;
+Keywords[hr]=pdf;spajanje;spoji;ghostscript;gs;
+StartupNotify=true

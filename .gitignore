@@ -54,3 +54,37 @@ compile_commands.json
 *creator.user*
 
 *_qmlcache.qrc
+
+<<<<<<< HEAD
+# C++ objects and libs
+
+# Qt-es
+
+# Qt unit tests
+
+# QtCreator
+
+# QtCreator Qml
+
+# QtCreator CMake
+
+# QtCreator 4.8< compilation database
+
+# QtCreator local machine specific files for imported projects
+
+=======
+# Build output
+build-*/
+*.user
+
+# Editor and OS noise
+*.swp
+*~
+.vscode/
+.idea/
+.DS_Store
+
+# Packaging artefacts
+*.tar.gz
+*.rpm
+>>>>>>> 78a16e7 (feat: PDF merge tool built on Ghostscript)
