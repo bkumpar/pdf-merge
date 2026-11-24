@@ -20,6 +20,11 @@
 #include <QHBoxLayout>
 #include <QIcon>
 #include <QLabel>
+#include <QLocale>
+#include <QMenu>
+#include <QMenuBar>
+#include <QSignalBlocker>
+#include <QSlider>
 #include <QMessageBox>
 #include <QActionGroup>
 #include <QProgressBar>
@@ -40,6 +45,14 @@ MainWindow::MainWindow(QWidget *parent)
 {
     buildUi();
     retranslateUi();
+
+    AppSettings &settings = AppSettings::instance();
+    m_toggleMenuBarAction->setChecked(settings.menuBarVisible());
+    menuBar()->setVisible(settings.menuBarVisible());
+
+    QSignalBlocker sliderBlocker(m_sizeSlider);
+    m_sizeSlider->setValue(settings.thumbnailWidth());
+
     refreshState();
 
     connect(m_runner, &GhostscriptRunner::finished, this,
@@ -52,32 +65,34 @@ void MainWindow::buildUi()
 {
     setMinimumSize(760, 520);
 
-    auto *toolBar = addToolBar(tr("Main"));
-    toolBar->setObjectName(QStringLiteral("mainToolBar"));
-    toolBar->setMovable(false);
-    toolBar->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
+    /* Actions live here, not in the toolbar, because the toolbar and the
+     * menu bar show the same objects. */
+    m_mergeAction = new QAction(QIcon::fromTheme(QStringLiteral("document-save")),
+                                QString(), this);
+    connect(m_mergeAction, &QAction::triggered, this, &MainWindow::startMerge);
 
-    m_addAction = toolBar->addAction(QIcon::fromTheme(QStringLiteral("document-open")),
-                                     QString());
+    m_addAction = new QAction(QIcon::fromTheme(QStringLiteral("document-open")),
+                              QString(), this);
     m_addAction->setShortcut(QKeySequence::Open);
     connect(m_addAction, &QAction::triggered, this, &MainWindow::addFilesViaDialog);
 
-    m_removeAction = toolBar->addAction(
-        QIcon::fromTheme(QStringLiteral("list-remove")), QString());
+    m_removeAction = new QAction(QIcon::fromTheme(QStringLiteral("list-remove")),
+                                 QString(), this);
+    m_removeAction->setShortcut(QKeySequence::Delete);
     connect(m_removeAction, &QAction::triggered, this, &MainWindow::removeSelected);
 
-    m_clearAction = toolBar->addAction(
-        QIcon::fromTheme(QStringLiteral("edit-clear")), QString());
+    m_clearAction = new QAction(QIcon::fromTheme(QStringLiteral("edit-clear")),
+                                QString(), this);
     connect(m_clearAction, &QAction::triggered, this, &MainWindow::clearAll);
 
-    toolBar->addSeparator();
-
-    m_iconViewAction = toolBar->addAction(
-        QIcon::fromTheme(QStringLiteral("view-list-icons")), QString());
+    m_iconViewAction = new QAction(QIcon::fromTheme(QStringLiteral("view-list-icons")),
+                                   QString(), this);
     m_iconViewAction->setCheckable(true);
-    m_detailsViewAction = toolBar->addAction(
-        QIcon::fromTheme(QStringLiteral("view-list-details")), QString());
+    m_iconViewAction->setShortcut(QKeySequence(Qt::CTRL | Qt::Key_1));
+    m_detailsViewAction = new QAction(QIcon::fromTheme(QStringLiteral("view-list-details")),
+                                      QString(), this);
     m_detailsViewAction->setCheckable(true);
+    m_detailsViewAction->setShortcut(QKeySequence(Qt::CTRL | Qt::Key_2));
 
     auto *viewGroup = new QActionGroup(this);
     viewGroup->addAction(m_iconViewAction);
@@ -89,48 +104,85 @@ void MainWindow::buildUi()
         applyDisplayMode(PdfListWidget::Details);
     });
 
-    m_fullPathAction = toolBar->addAction(QString());
+    m_fullPathAction = new QAction(QString(), this);
     m_fullPathAction->setCheckable(true);
+    m_fullPathAction->setShortcut(QKeySequence(Qt::CTRL | Qt::SHIFT | Qt::Key_L));
     connect(m_fullPathAction, &QAction::toggled, this, [this](bool checked) {
         m_list->setShowFullPath(checked);
         AppSettings::instance().setShowFullPath(checked);
         AppSettings::instance().sync();
     });
 
-    m_sizeLabel = new QLabel(this);
-    toolBar->addWidget(m_sizeLabel);
-
-    m_sizeSlider = new QSlider(Qt::Horizontal, this);
-    m_sizeSlider->setRange(80, 280);
-    m_sizeSlider->setSingleStep(10);
-    m_sizeSlider->setPageStep(20);
-    m_sizeSlider->setFixedWidth(140);
-    toolBar->addWidget(m_sizeSlider);
-    connect(m_sizeSlider, &QSlider::valueChanged, this, [this](int value) {
-        m_list->setThumbnailWidth(value);
-    });
-    connect(m_sizeSlider, &QSlider::sliderReleased, this, [this] {
-        AppSettings::instance().setThumbnailWidth(m_sizeSlider->value());
-        AppSettings::instance().sync();
-    });
-
-    toolBar->addSeparator();
-
-    m_settingsAction = toolBar->addAction(
-        QIcon::fromTheme(QStringLiteral("configure")), QString());
+    m_settingsAction = new QAction(QIcon::fromTheme(QStringLiteral("configure")),
+                                   QString(), this);
+    m_settingsAction->setShortcut(QKeySequence::Preferences);
     connect(m_settingsAction, &QAction::triggered, this, &MainWindow::openSettings);
 
-    m_aboutAction = toolBar->addAction(
-        QIcon::fromTheme(QStringLiteral("help-about")), QString());
+    m_aboutAction = new QAction(QIcon::fromTheme(QStringLiteral("help-about")),
+                                QString(), this);
     connect(m_aboutAction, &QAction::triggered, this, &MainWindow::showAbout);
 
-    auto *spacer = new QWidget(this);
-    spacer->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
-    toolBar->addWidget(spacer);
+    m_aboutQtAction = new QAction(QString(), this);
+    connect(m_aboutQtAction, &QAction::triggered, this, &MainWindow::showAboutQt);
 
-    m_mergeAction = toolBar->addAction(
-        QIcon::fromTheme(QStringLiteral("document-save")), QString());
-    connect(m_mergeAction, &QAction::triggered, this, &MainWindow::startMerge);
+    m_quitAction = new QAction(QString(), this);
+    m_quitAction->setShortcut(QKeySequence::Quit);
+    connect(m_quitAction, &QAction::triggered, this, &MainWindow::close);
+
+    m_toggleMenuBarAction = new QAction(QString(), this);
+    m_toggleMenuBarAction->setCheckable(true);
+    m_toggleMenuBarAction->setChecked(true);
+    m_toggleMenuBarAction->setShortcut(QKeySequence(Qt::CTRL | Qt::Key_M));
+    connect(m_toggleMenuBarAction, &QAction::toggled, this, [this](bool visible) {
+        menuBar()->setVisible(visible);
+        AppSettings::instance().setMenuBarVisible(visible);
+        AppSettings::instance().sync();
+    });
+    /* Registered on the window as well, so Ctrl+M still works while the
+     * menu bar itself is hidden. */
+    addAction(m_toggleMenuBarAction);
+
+    auto *toolBar = addToolBar(tr("Main"));
+    toolBar->setObjectName(QStringLiteral("mainToolBar"));
+    toolBar->setMovable(false);
+    toolBar->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
+
+    toolBar->addAction(m_mergeAction);
+    toolBar->addSeparator();
+    toolBar->addAction(m_addAction);
+    toolBar->addAction(m_removeAction);
+    toolBar->addAction(m_clearAction);
+    toolBar->addSeparator();
+    toolBar->addAction(m_iconViewAction);
+    toolBar->addAction(m_detailsViewAction);
+    toolBar->addAction(m_fullPathAction);
+    toolBar->addSeparator();
+    toolBar->addAction(m_settingsAction);
+    toolBar->addAction(m_aboutAction);
+
+    m_fileMenu = menuBar()->addMenu(QString());
+    m_fileMenu->addAction(m_addAction);
+    m_fileMenu->addAction(m_removeAction);
+    m_fileMenu->addAction(m_clearAction);
+    m_fileMenu->addSeparator();
+    m_fileMenu->addAction(m_mergeAction);
+    m_fileMenu->addSeparator();
+    m_fileMenu->addAction(m_quitAction);
+
+    m_viewMenu = menuBar()->addMenu(QString());
+    m_viewMenu->addAction(m_iconViewAction);
+    m_viewMenu->addAction(m_detailsViewAction);
+    m_viewMenu->addSeparator();
+    m_viewMenu->addAction(m_fullPathAction);
+    m_viewMenu->addSeparator();
+    m_viewMenu->addAction(m_toggleMenuBarAction);
+
+    m_settingsMenu = menuBar()->addMenu(QString());
+    m_settingsMenu->addAction(m_settingsAction);
+
+    m_helpMenu = menuBar()->addMenu(QString());
+    m_helpMenu->addAction(m_aboutAction);
+    m_helpMenu->addAction(m_aboutQtAction);
 
     auto *central = new QWidget(this);
     auto *layout = new QVBoxLayout(central);
@@ -163,6 +215,34 @@ void MainWindow::buildUi()
     progressLayout->addWidget(m_cancelButton);
     m_progressRow->setVisible(false);
     layout->addWidget(m_progressRow);
+
+    auto *summaryBar = new QWidget(central);
+    summaryBar->setObjectName(QStringLiteral("summaryBar"));
+    auto *summaryLayout = new QHBoxLayout(summaryBar);
+    summaryLayout->setContentsMargins(6, 2, 6, 2);
+
+    m_summaryLabel = new QLabel(summaryBar);
+    summaryLayout->addWidget(m_summaryLabel, 0);
+    summaryLayout->addStretch(1);
+
+    m_sizeLabel = new QLabel(summaryBar);
+    summaryLayout->addWidget(m_sizeLabel);
+
+    m_sizeSlider = new QSlider(Qt::Horizontal, summaryBar);
+    m_sizeSlider->setRange(80, 280);
+    m_sizeSlider->setSingleStep(10);
+    m_sizeSlider->setPageStep(20);
+    m_sizeSlider->setFixedWidth(160);
+    summaryLayout->addWidget(m_sizeSlider);
+    connect(m_sizeSlider, &QSlider::valueChanged, this, [this](int value) {
+        m_list->setThumbnailWidth(value);
+    });
+    connect(m_sizeSlider, &QSlider::sliderReleased, this, [this] {
+        AppSettings::instance().setThumbnailWidth(m_sizeSlider->value());
+        AppSettings::instance().sync();
+    });
+
+    layout->addWidget(summaryBar);
 
     connect(m_cancelButton, &QPushButton::clicked, this, &MainWindow::cancelMerge);
 
@@ -201,6 +281,14 @@ void MainWindow::retranslateUi()
     m_settingsAction->setText(tr("Settings..."));
     m_aboutAction->setText(tr("About"));
     m_aboutAction->setToolTip(tr("About this application"));
+    m_aboutQtAction->setText(tr("About Qt"));
+    m_quitAction->setText(tr("Quit"));
+    m_toggleMenuBarAction->setText(tr("Show Menu Bar"));
+
+    m_fileMenu->setTitle(tr("&File"));
+    m_viewMenu->setTitle(tr("&View"));
+    m_settingsMenu->setTitle(tr("&Settings"));
+    m_helpMenu->setTitle(tr("&Help"));
 
     m_iconViewAction->setText(tr("Icons"));
     m_iconViewAction->setToolTip(tr("Show page thumbnails"));
@@ -219,6 +307,8 @@ void MainWindow::retranslateUi()
     m_bannerButton->setText(tr("Open Settings"));
 
     m_cancelButton->setText(tr("Cancel"));
+
+    updateDocumentSummary();
 
     statusBar()->showMessage(m_runner->isRunning() ? tr("Merging...") : tr("Ready"));
 }
@@ -355,6 +445,30 @@ void MainWindow::refreshState()
     m_addAction->setEnabled(!running);
 
     m_progressRow->setVisible(running);
+
+    updateDocumentSummary();
+}
+
+void MainWindow::updateDocumentSummary()
+{
+    const QStringList files = m_list->filePaths();
+    qint64 bytes = 0;
+    for (const QString &path : files) {
+        bytes += QFileInfo(path).size();
+    }
+    const QString size = QLocale().toString(bytes / 1024.0, 'f', 1)
+                         + QStringLiteral(" kB");
+    /* English has no plural rule in Qt without a translation file, so the
+     * singular gets its own string and the plural uses %n. */
+    const QString count = files.size() == 1
+                              ? tr("1 PDF file")
+                              : tr("%n PDF files", nullptr, files.size());
+    m_summaryLabel->setText(count + QStringLiteral(", ") + size);
+}
+
+void MainWindow::showAboutQt()
+{
+    QMessageBox::aboutQt(this, tr("About Qt"));
 }
 
 void MainWindow::setBusy(bool busy)

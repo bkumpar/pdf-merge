@@ -20,6 +20,7 @@ constexpr auto kKeyDestinationDir = "paths/lastDestinationDir";
 constexpr auto kKeyThumbnailWidth = "ui/thumbnailWidth";
 constexpr auto kKeyViewMode = "ui/viewMode";
 constexpr auto kKeyShowFullPath = "ui/showFullPath";
+constexpr auto kKeyMenuBarVisible = "ui/menuBarVisible";
 
 } // namespace
 
@@ -254,4 +255,14 @@ bool AppSettings::showFullPath() const
 void AppSettings::setShowFullPath(bool full)
 {
     m_settings.setValue(QString::fromLatin1(kKeyShowFullPath), full);
+}
+
+bool AppSettings::menuBarVisible() const
+{
+    return m_settings.value(QString::fromLatin1(kKeyMenuBarVisible), true).toBool();
+}
+
+void AppSettings::setMenuBarVisible(bool visible)
+{
+    m_settings.setValue(QString::fromLatin1(kKeyMenuBarVisible), visible);
 }

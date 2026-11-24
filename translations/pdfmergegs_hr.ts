@@ -4,7 +4,7 @@
 <context>
     <name>AppSettings</name>
     <message>
-        <location filename="../src/AppSettings.cpp" line="+186"/>
+        <location filename="../src/AppSettings.cpp" line="+187"/>
         <source>Lossless Quality (Recommended)</source>
         <translation>Bez gubitaka (preporučeno)</translation>
     </message>
@@ -28,18 +28,18 @@
 <context>
     <name>MainWindow</name>
     <message>
-        <location filename="../src/MainWindow.cpp" line="+55"/>
+        <location filename="../src/MainWindow.cpp" line="+145"/>
         <source>Main</source>
         <translation>Glavna</translation>
     </message>
     <message>
-        <location line="+136"/>
-        <location line="+32"/>
+        <location line="+126"/>
+        <location line="+42"/>
         <source>Ready</source>
         <translation>Spremno</translation>
     </message>
     <message>
-        <location line="-27"/>
+        <location line="-37"/>
         <source>PDF Merge GS</source>
         <translation>Spajanje PDF-ova (GS)</translation>
     </message>
@@ -72,6 +72,36 @@
         <location line="+1"/>
         <source>About this application</source>
         <translation>O ovoj aplikaciji</translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>Quit</source>
+        <translation>Zatvori</translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Show Menu Bar</source>
+        <translation>Prikaži traku izbornika</translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>&amp;File</source>
+        <translation>&amp;Datoteka</translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>&amp;View</source>
+        <translation>&amp;Prikaz</translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>&amp;Settings</source>
+        <translation>&amp;Postavke</translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>&amp;Help</source>
+        <translation>&amp;Pomoć</translation>
     </message>
     <message>
         <location line="+2"/>
@@ -134,13 +164,13 @@
         <translation>Odustani</translation>
     </message>
     <message>
-        <location line="+2"/>
-        <location line="+141"/>
+        <location line="+4"/>
+        <location line="+165"/>
         <source>Merging...</source>
         <translation>Spajam...</translation>
     </message>
     <message numerus="yes">
-        <location line="-116"/>
+        <location line="-140"/>
         <source>%n file(s) loaded from the command line.</source>
         <translation>
             <numerusform>Iz naredbenog retka učitana je %n datoteka.</numerusform>
@@ -155,12 +185,12 @@
     </message>
     <message>
         <location line="+1"/>
-        <location line="+171"/>
+        <location line="+195"/>
         <source>PDF documents (*.pdf)</source>
         <translation>PDF dokumenti (*.pdf)</translation>
     </message>
     <message numerus="yes">
-        <location line="-161"/>
+        <location line="-185"/>
         <source>%n file(s) added.</source>
         <translation>
             <numerusform>Dodana je %n datoteka.</numerusform>
@@ -184,12 +214,24 @@
         <translation>O Qt-u...</translation>
     </message>
     <message>
-        <location line="+6"/>
+        <location line="+58"/>
+        <source>1 PDF file</source>
+        <translation>1 PDF datoteka</translation>
+    </message>
+    <message numerus="yes">
+        <location line="+1"/>
+        <source>%n PDF files</source>
+        <translation><numerusform>%n PDF datoteka</numerusform><numerusform>%n PDF datoteke</numerusform><numerusform>%n PDF datoteka</numerusform></translation>
+    </message>
+    <message>
+        <location line="-181"/>
+        <location line="+128"/>
+        <location line="+59"/>
         <source>About Qt</source>
         <translation>O Qt-u</translation>
     </message>
     <message>
-        <location line="+61"/>
+        <location line="+26"/>
         <source>Digitally signed documents</source>
         <translation>Digitalno potpisani dokumenti</translation>
     </message>
@@ -340,7 +382,11 @@ Do you want to continue?</source>
     <message numerus="yes">
         <location line="+4"/>
         <source>%n page(s)</source>
-        <translation><numerusform>%n stranica</numerusform><numerusform>%n stranice</numerusform><numerusform>%n stranica</numerusform></translation>
+        <translation>
+            <numerusform>%n stranica</numerusform>
+            <numerusform>%n stranice</numerusform>
+            <numerusform>%n stranica</numerusform>
+        </translation>
     </message>
     <message>
         <location line="+153"/>

@@ -60,6 +60,9 @@ public:
     bool showFullPath() const;
     void setShowFullPath(bool full);
 
+    bool menuBarVisible() const;
+    void setMenuBarVisible(bool visible);
+
     void restoreDefaults();
     void sync();
 
